@@ -2,10 +2,11 @@ package br.com.samuel.apijunit5.resources.exceptions;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class StandardError {
 
