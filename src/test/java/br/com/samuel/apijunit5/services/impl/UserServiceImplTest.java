@@ -3,6 +3,7 @@ package br.com.samuel.apijunit5.services.impl;
 import br.com.samuel.apijunit5.domain.User;
 import br.com.samuel.apijunit5.domain.dto.UserDTO;
 import br.com.samuel.apijunit5.repositories.UserRepository;
+import br.com.samuel.apijunit5.services.exceptions.DataIntegratyViolationException;
 import br.com.samuel.apijunit5.services.exceptions.ObjectNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -79,13 +80,47 @@ class UserServiceImplTest {
     }
 
     @Test
-    void create() {
+    void whenCreateUserThenReturnSuccess() {
+
+        when(repository.save(any())).thenReturn(user);
+
+        User response = service.create(userDTO);
+
+        assertNotNull(response);
+        assertEquals(User.class, response.getClass());
+        assertEquals(1, response.getId());
+        assertEquals("samuel",response.getName());
+        assertEquals("samuel@gmail.com", response.getEmail());
+        assertEquals("1234", response.getPassword());
     }
 
     @Test
-    void update() {
+    void whenCreateUserThenReturnAnDataIntegrityViolationException() {
+        when(repository.findByEmail(anyString())).thenReturn(optionalUser);
+
+        try{
+            optionalUser.get().setId(2);
+            service.create(userDTO);
+        }catch (Exception ex){
+            assertEquals(DataIntegratyViolationException.class, ex.getClass());
+            assertEquals("E-mail já cadastrado no sistema", ex.getMessage());
+        }
     }
 
+    @Test
+    void whenUpdateUserThenReturnSuccess() {
+
+        when(repository.save(any())).thenReturn(user);
+
+        User response = service.update(userDTO);
+
+        assertNotNull(response);
+        assertEquals(User.class, response.getClass());
+        assertEquals(1, response.getId());
+        assertEquals("samuel",response.getName());
+        assertEquals("samuel@gmail.com", response.getEmail());
+        assertEquals("1234", response.getPassword());
+    }
     @Test
     void delete() {
     }
