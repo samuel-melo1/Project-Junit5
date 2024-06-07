@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class UserServiceImplTest {
@@ -34,6 +34,7 @@ class UserServiceImplTest {
     private User user;
     private UserDTO userDTO;
     private Optional<User> optionalUser;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -48,17 +49,18 @@ class UserServiceImplTest {
         assertNotNull(response);
         assertEquals(User.class, response.getClass());
         assertEquals(1, response.getId());
-        assertEquals("samuel",response.getName());
+        assertEquals("samuel", response.getName());
         assertEquals("samuel@gmail.com", response.getEmail());
 
     }
+
     @Test
-    void whenFindByIdThenReturnAnObjectNotFoundException(){
-        when(repository.findById(anyInt())).thenThrow( new ObjectNotFoundException("Objeto não encontrado"));
+    void whenFindByIdThenReturnAnObjectNotFoundException() {
+        when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException("Objeto não encontrado"));
 
         try {
             service.findById(1);
-        }catch (Exception e){
+        } catch (Exception e) {
             assertEquals(ObjectNotFoundException.class, e.getClass());
             assertEquals("Objeto não encontrado", e.getMessage());
         }
@@ -89,7 +91,7 @@ class UserServiceImplTest {
         assertNotNull(response);
         assertEquals(User.class, response.getClass());
         assertEquals(1, response.getId());
-        assertEquals("samuel",response.getName());
+        assertEquals("samuel", response.getName());
         assertEquals("samuel@gmail.com", response.getEmail());
         assertEquals("1234", response.getPassword());
     }
@@ -98,10 +100,10 @@ class UserServiceImplTest {
     void whenCreateUserThenReturnAnDataIntegrityViolationException() {
         when(repository.findByEmail(anyString())).thenReturn(optionalUser);
 
-        try{
+        try {
             optionalUser.get().setId(2);
             service.create(userDTO);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             assertEquals(DataIntegratyViolationException.class, ex.getClass());
             assertEquals("E-mail já cadastrado no sistema", ex.getMessage());
         }
@@ -117,15 +119,45 @@ class UserServiceImplTest {
         assertNotNull(response);
         assertEquals(User.class, response.getClass());
         assertEquals(1, response.getId());
-        assertEquals("samuel",response.getName());
+        assertEquals("samuel", response.getName());
         assertEquals("samuel@gmail.com", response.getEmail());
         assertEquals("1234", response.getPassword());
     }
+
     @Test
-    void delete() {
+    void whenUpdateUserThenReturnAnDataIntegrityViolationException() {
+        when(repository.findByEmail(anyString())).thenReturn(optionalUser);
+
+        try {
+            optionalUser.get().setId(2);
+            service.update(userDTO);
+        } catch (Exception ex) {
+            assertEquals(DataIntegratyViolationException.class, ex.getClass());
+            assertEquals("E-mail já cadastrado no sistema", ex.getMessage());
+        }
     }
 
-    private void startUser(){
+    @Test
+    void deleteWithSuccess() {
+
+        when(repository.findById(anyInt())).thenReturn(optionalUser);
+        doNothing().when(repository).deleteById(anyInt());
+        service.delete(1);
+        verify(repository, times(1)).deleteById(anyInt());
+    }
+
+    @Test
+    void deleteWithObjectNotFoundException() {
+        when(repository.findById(anyInt())).thenThrow(new ObjectNotFoundException("Objeto não encontrado"));
+        try {
+            service.delete(1);
+        } catch (Exception ex) {
+            assertEquals(ObjectNotFoundException.class, ex.getClass());
+            assertEquals("Objeto não encontrado", ex.getMessage());
+        }
+    }
+
+    private void startUser() {
         user = new User(1, "samuel", "samuel@gmail.com", "1234");
         userDTO = new UserDTO(1, "samuel", "samuel@gmail.com", "1234");
         optionalUser = Optional.of(new User(1, "samuel", "samuel@gmail.com", "1234"));
